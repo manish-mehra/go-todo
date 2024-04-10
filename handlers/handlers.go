@@ -9,7 +9,27 @@ import (
 	"github.com/manish-mehra/go-todo/utils"
 )
 
-func RegisterUser(w http.ResponseWriter, req *http.Request) {
+var Serve http.Handler
+
+func init() {
+
+	log.Print("server init")
+	r := http.NewServeMux()
+
+	r.HandleFunc("GET /api/health", health)
+	r.HandleFunc("POST /api/register", registerUser)
+
+	Serve = r
+}
+
+func health(w http.ResponseWriter, req *http.Request) {
+	response, _ := utils.ParseResponse("ok 🟢")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
+func registerUser(w http.ResponseWriter, req *http.Request) {
 	// parse user
 	newUser, err := utils.DecodeUserJSON(req.Body)
 	if err != nil {

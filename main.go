@@ -7,11 +7,5 @@ import (
 )
 
 func main() {
-
-	fileServer := http.FileServer(http.Dir("static"))
-	http.Handle("/", http.StripPrefix("/", fileServer))
-
-	http.HandleFunc("/api/register", handlers.RegisterUser)
-
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", handlers.Serve)
 }
