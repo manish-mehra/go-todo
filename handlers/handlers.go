@@ -116,7 +116,13 @@ func loginUser(w http.ResponseWriter, req *http.Request) {
 	// Set the cookie in the response
 	http.SetCookie(w, &cookie)
 	log.Print(cookie)
-	response := models.Response{Message: "successful!", Data: dbUser}
+	resUser := struct {
+		Id    string `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+		Role  string `json:"role"`
+	}{Id: dbUser.Id, Name: dbUser.Name, Email: dbUser.Email, Role: dbUser.Role}
+	response := models.Response{Message: "successful!", Data: resUser}
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		log.Print(err)
