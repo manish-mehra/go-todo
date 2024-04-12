@@ -38,7 +38,7 @@ func ConnectToDB() error {
 	db, err := sql.Open("mysql", connectionString)
 
 	if err != nil {
-		return errors.New("Error connecting to database")
+		return errors.New("error connecting to database")
 	}
 
 	// defer db.Close()
@@ -67,4 +67,23 @@ func CreateUser(user models.User) error {
 		return errors.New("failed to create user: can't execute query")
 	}
 	return nil
+}
+
+func GetUserByEmail(userMail string) (models.User, error) {
+	var user models.User
+
+	stmt, err := mysqlDB.Prepare("SELECT * FROM User WHERE email = ?")
+	if err != nil {
+		return user, errors.New("failed get user: wrong query")
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(userMail).Scan(&user.Id, &user.Name, &user.Email, &user.Role, &user.Password)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, errors.New("user not found")
+		}
+		return user, errors.New("failed to get user: " + err.Error())
+	}
+	return user, nil
 }
