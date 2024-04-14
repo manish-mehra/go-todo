@@ -3,8 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -33,11 +33,11 @@ func ParseResponse(message string) ([]byte, error) {
 // JWT TOKEK
 var secretKey = []byte("secret-key")
 
-func CreateToken(email string) (string, error) {
+func CreateToken(userId string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"email": email,
-			"exp":   time.Now().Add(time.Hour * 24).Unix(),
+			"userId": userId,
+			"exp":    time.Now().Add(time.Hour * 24).Unix(),
 		})
 
 	tokenString, err := token.SignedString(secretKey)
@@ -48,6 +48,10 @@ func CreateToken(email string) (string, error) {
 	return tokenString, nil
 }
 
+// VerifyToken parses and validates a JWT token.
+// - Extracts user ID from valid claims.
+// - Returns userID and error if invalid or missing claim.
+//   - Specific error messages for signature issues and missing claims.
 func VerifyToken(tokenString string) (string, error) {
 	// Parse the token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -56,22 +60,31 @@ func VerifyToken(tokenString string) (string, error) {
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return "", fmt.Errorf("invalid token signature")
+			return "", errors.New("invalid token signature")
 		} else {
-			return "", fmt.Errorf("invalid token: %w", err)
+			return "", errors.New("invalid token")
 		}
 	}
 
 	// Check token validity
 	if !token.Valid {
-		return "", fmt.Errorf("invalid token")
+		return "", errors.New("invalid token")
 	}
 	// Extract  claim
 	claims := token.Claims.(jwt.MapClaims)
-	email, ok := claims["email"].(string)
+	userId, ok := claims["userId"].(string)
 	if !ok {
-		return "", fmt.Errorf("missing email claim")
+		return "", errors.New("missing userId  claim")
 	}
 
-	return email, nil
+	return userId, nil
+}
+
+// convert strint to int64
+func StringToInt64(str string) (int64, error) {
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		return 0, err // Handle error (e.g., return 0 and an error)
+	}
+	return int64(i), nil
 }

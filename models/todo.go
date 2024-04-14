@@ -9,3 +9,8 @@ type Todo struct {
 	CreatedAt time.Time `json:"created_at"`
 	UserID    int64     `json:"user_id"`
 }
+
+type UserTodo struct {
+	Title     string `json:"title"`
+	Completed bool   `json:"completed"`
+}

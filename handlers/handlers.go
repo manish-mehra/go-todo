@@ -19,6 +19,7 @@ func init() {
 	r.HandleFunc("POST /api/register", RegisterUser)
 	r.HandleFunc("POST /api/login", LoginUser)
 	r.HandleFunc("GET /api/protected", protectedRoute)
+	r.HandleFunc("POST /api/todo", PostTodo)
 
 	Serve = r
 }
@@ -52,7 +53,7 @@ func protectedRoute(w http.ResponseWriter, req *http.Request) {
 	owner, err := utils.VerifyToken(token)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(w, "Invalid Token!")
+		fmt.Fprintf(w, error.Error(err))
 		return
 	}
 

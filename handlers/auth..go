@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/manish-mehra/go-todo/models"
 	"github.com/manish-mehra/go-todo/services"
@@ -72,7 +73,8 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// create jwt token
-	token, err := utils.CreateToken(dbUser.Email)
+	userId := strconv.Itoa(int(dbUser.Id))
+	token, err := utils.CreateToken(userId)
 	if err != nil {
 		message := "error generating token"
 		response, _ := utils.ParseResponse(message)
@@ -87,15 +89,13 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 		Name:   "token",
 		Value:  token,
 		MaxAge: 3600,
-		Domain: "http://localhost:8080",
 		Path:   "/",
 		Secure: true, // Only send cookie over HTTPS connections (if applicable)
 	}
 	// Set the cookie in the response
 	http.SetCookie(w, &cookie)
-	log.Print(cookie)
 	resUser := struct {
-		Id    string `json:"id"`
+		Id    int64  `json:"id"`
 		Name  string `json:"name"`
 		Email string `json:"email"`
 		Role  string `json:"role"`
