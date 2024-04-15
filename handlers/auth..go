@@ -13,12 +13,14 @@ import (
 )
 
 func RegisterUser(w http.ResponseWriter, req *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
 	// parse user
 	newUser, err := utils.DecodeUserJSON(req.Body)
 	if err != nil {
 		message := "Error parsing user"
 		response, _ := utils.ParseResponse(message)
-		w.Header().Set("Content-Type", "application/json")
 		w.Write(response) // Write the JSON data to the response body
 		return
 	}
@@ -32,11 +34,12 @@ func RegisterUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	response, _ := utils.ParseResponse("user created")
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(response) // Write the JSON data to the response body
 }
 
 func LoginUser(w http.ResponseWriter, req *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
 
 	var loggedUser struct {
 		Email    string
@@ -47,7 +50,6 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 	if err := decoder.Decode(&loggedUser); err != nil {
 		message := "Error parsing user"
 		response, _ := utils.ParseResponse(message)
-		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 		return
 	}
@@ -57,7 +59,6 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		message := string(err.Error())
 		response, _ := utils.ParseResponse(message)
-		w.Header().Set("Content-Type", "application/json")
 		w.Write(response) // Write the JSON data to the response body
 		return
 	}
@@ -67,7 +68,6 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 		fmt.Print(dbUser, loggedUser)
 		message := "incorrect password"
 		response, _ := utils.ParseResponse(message)
-		w.Header().Set("Content-Type", "application/json")
 		w.Write(response) // Write the JSON data to the response body
 		return
 	}

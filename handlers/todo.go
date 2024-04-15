@@ -36,6 +36,9 @@ func isAuthenticated(req *http.Request) (string, error) {
 }
 
 func GetTodo(w http.ResponseWriter, req *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
 	// check if authenticated
 	userId, err := isAuthenticated(req)
 	if err != nil {
@@ -93,9 +96,13 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
 func GetAllTodo(w http.ResponseWriter, req *http.Request) {}
 
 func PostTodo(w http.ResponseWriter, req *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
 	// check if authenticated
 	userId, err := isAuthenticated(req)
 	if err != nil {
@@ -130,7 +137,6 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 
 	message := "todo created"
 	response, _ := utils.ParseResponse(message)
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)
 	return
