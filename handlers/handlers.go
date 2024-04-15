@@ -20,6 +20,7 @@ func init() {
 	r.HandleFunc("POST /api/login", LoginUser)
 	r.HandleFunc("GET /api/protected", protectedRoute)
 	r.HandleFunc("POST /api/todo", PostTodo)
+	r.HandleFunc("GET /api/todo/{id}", GetTodo)
 
 	Serve = r
 }
