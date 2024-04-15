@@ -97,7 +97,52 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func GetAllTodo(w http.ResponseWriter, req *http.Request) {}
+func GetAllTodo(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// check if authenticated
+	userId, err := isAuthenticated(req)
+	if err != nil {
+		log.Print(err)
+		message := err.Error()
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintf(w, message)
+		return
+	}
+
+	userID, err := utils.StringToInt64(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	todos, err := services.GetAllTodos(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	var resTodo []models.ResTodo
+	// convert res to json
+	func() {
+		for _, todo := range todos {
+			var newTodo models.ResTodo
+			newTodo.Id = todo.ID
+			newTodo.Title = todo.Title
+			newTodo.Completed = todo.Completed
+			resTodo = append(resTodo, newTodo)
+		}
+	}()
+
+	response := models.Response{Message: "successful", Data: resTodo}
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Print(err)
+		fmt.Fprintf(w, "internal error while parsing todos")
+		return
+	}
+}
 
 func PostTodo(w http.ResponseWriter, req *http.Request) {
 

@@ -14,3 +14,9 @@ type UserTodo struct {
 	Title     string `json:"title"`
 	Completed bool   `json:"completed"`
 }
+
+type ResTodo struct {
+	Id        int64  `json:"id"`
+	Title     string `json:"title"`
+	Completed bool   `json:"completed"`
+}
