@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	stmtPostTodo *sql.Stmt
-	stmtGetTodo  *sql.Stmt
-	stmtGetTodos *sql.Stmt
+	stmtPostTodo   *sql.Stmt
+	stmtGetTodo    *sql.Stmt
+	stmtGetTodos   *sql.Stmt
+	stmtDeleteTodo *sql.Stmt
 )
 
 func init() {
@@ -30,6 +31,11 @@ func init() {
 	}
 
 	stmtGetTodos, err = mysqlDB.Prepare("SELECT id, title, completed FROM Todo WHERE user_id = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	stmtDeleteTodo, err = mysqlDB.Prepare("DELETE FROM Todo WHERE id=?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,4 +87,19 @@ func GetAllTodos(userId int64) ([]models.Todo, error) {
 	}
 
 	return todos, nil
+}
+
+func DeleteTodo(id int64) error {
+	result, err := stmtDeleteTodo.Exec(id)
+	if err != nil {
+		return errors.New("failed to delete todo")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err // handle error getting rows affected
+	}
+	if rowsAffected == 0 {
+		return errors.New("todo with ID not found") // handle missing ID
+	}
+	return nil
 }

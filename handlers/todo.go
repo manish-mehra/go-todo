@@ -187,4 +187,52 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func DeleteTodo(w http.ResponseWriter, req *http.Request) {}
+func DeleteTodo(w http.ResponseWriter, req *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	// check if authenticated
+	_, err := isAuthenticated(req)
+	if err != nil {
+		log.Print(err)
+		message := err.Error()
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintf(w, message)
+		return
+	}
+
+	// get todo id from req param
+	paramTodoID := req.PathValue("id")
+	log.Print("paramTodoID ", paramTodoID)
+	if paramTodoID == "" {
+		log.Print("no todo id was found")
+		message := "no todo id was found!"
+		w.WriteHeader(http.StatusNotExtended)
+		fmt.Fprintf(w, message)
+		return
+	}
+
+	// convert todo  id to int
+	todoID, err := utils.StringToInt64(paramTodoID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	// delete  todo from db
+	err = services.DeleteTodo(todoID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	response := models.Response{Message: "successful", Data: nil}
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Print(err)
+		fmt.Fprintf(w, "internal error while parsing todo")
+		return
+	}
+}
