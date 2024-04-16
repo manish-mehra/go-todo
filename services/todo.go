@@ -25,7 +25,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	stmtGetTodo, err = mysqlDB.Prepare("SELECT id, title, completed FROM Todo WHERE user_id = ? AND id = ?")
+	stmtGetTodo, err = mysqlDB.Prepare("SELECT id, title, completed FROM Todo WHERE id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,9 +52,9 @@ func PostTodo(todo models.UserTodo, userId int64) error {
 
 // GetTodo return Todo & error
 // Expect userId and id(todo) as arg
-func GetTodo(userId int64, id int64) (models.Todo, error) {
+func GetTodo(id int64) (models.Todo, error) {
 	var todo models.Todo
-	err := stmtGetTodo.QueryRow(userId, id).Scan(&todo.ID, &todo.Title, &todo.Completed)
+	err := stmtGetTodo.QueryRow(id).Scan(&todo.ID, &todo.Title, &todo.Completed)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// No todo found with the provided user ID and ID

@@ -40,7 +40,7 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// check if authenticated
-	userId, err := isAuthenticated(req)
+	_, err := isAuthenticated(req)
 	if err != nil {
 		log.Print(err)
 		message := err.Error()
@@ -59,7 +59,7 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// convert user id to int
+	// convert todo id to int
 	todoID, err := utils.StringToInt64(paramTodoID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -67,15 +67,8 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	userID, err := utils.StringToInt64(userId)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
-		return
-	}
-
 	// get todo from db
-	todo, err := services.GetTodo(userID, todoID)
+	todo, err := services.GetTodo(todoID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
