@@ -21,6 +21,7 @@ func init() {
 	r.HandleFunc("GET /api/todo/{id}", GetTodo)
 	r.HandleFunc("GET /api/todos", GetAllTodo)
 	r.HandleFunc("DELETE /api/todo/{id}", DeleteTodo)
+	r.HandleFunc("PUT /api/todo/{id}", UpdateTodo)
 
 	Serve = r
 }

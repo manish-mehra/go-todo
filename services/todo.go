@@ -13,6 +13,7 @@ var (
 	stmtGetTodo    *sql.Stmt
 	stmtGetTodos   *sql.Stmt
 	stmtDeleteTodo *sql.Stmt
+	stmtUpdateTodo *sql.Stmt
 )
 
 func init() {
@@ -40,12 +41,23 @@ func init() {
 		log.Fatal(err)
 	}
 
+	stmtUpdateTodo, err = mysqlDB.Prepare("UPDATE Todo SET title = ?, completed = ?  WHERE id = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func PostTodo(todo models.UserTodo, userId int64) error {
-	_, err := stmtPostTodo.Exec(todo.Title, todo.Completed, userId)
+	result, err := stmtPostTodo.Exec(todo.Title, todo.Completed, userId)
 	if err != nil {
 		return errors.New("failed to post todo")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err // handle error getting rows affected
+	}
+	if rowsAffected == 0 {
+		return errors.New("todo with ID not found") // handle missing ID
 	}
 	return nil
 }
@@ -93,6 +105,21 @@ func DeleteTodo(id int64) error {
 	result, err := stmtDeleteTodo.Exec(id)
 	if err != nil {
 		return errors.New("failed to delete todo")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err // handle error getting rows affected
+	}
+	if rowsAffected == 0 {
+		return errors.New("todo with ID not found") // handle missing ID
+	}
+	return nil
+}
+
+func UpdateTodo(todo models.UserTodo, todoId int64) error {
+	result, err := stmtUpdateTodo.Exec(todo.Title, todo.Completed, todoId)
+	if err != nil {
+		return errors.New("failed to update todo")
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {

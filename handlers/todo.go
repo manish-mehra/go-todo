@@ -229,3 +229,57 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
+func UpdateTodo(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// check if authenticated
+	_, err := isAuthenticated(req)
+	if err != nil {
+		log.Print(err)
+		message := err.Error()
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintf(w, message)
+		return
+	}
+	// get todo from request
+	var newTodo models.UserTodo
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(&newTodo); err != nil {
+		fmt.Fprintf(w, "error decoding json data")
+		return
+	}
+
+	// get todo id from req param
+	paramTodoID := req.PathValue("id")
+	log.Print("paramTodoID ", paramTodoID)
+	if paramTodoID == "" {
+		log.Print("no todo id was found")
+		message := "no todo id was found!"
+		w.WriteHeader(http.StatusNotExtended)
+		fmt.Fprintf(w, message)
+		return
+	}
+
+	// convert todo  id to int
+	todoID, err := utils.StringToInt64(paramTodoID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	// update the todo
+	err = services.UpdateTodo(newTodo, todoID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	message := "todo updated"
+	response, _ := utils.ParseResponse(message)
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+	return
+}
