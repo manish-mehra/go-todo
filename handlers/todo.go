@@ -15,6 +15,14 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	// get userid from request context
+	userId, ok := req.Context().Value("userId").(string)
+	if !ok {
+		// Handle error if user ID is not found or has unexpected type
+		http.Error(w, "User ID not found", http.StatusUnauthorized)
+		return
+	}
+
 	// get todo id from req param
 	paramTodoID := req.PathValue("id")
 	log.Print("paramTodoID ", paramTodoID)
@@ -34,8 +42,16 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// convert user id to int
+	userID, err := utils.StringToInt(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
 	// get todo from db
-	todo, err := services.GetTodo(todoID)
+	todo, err := services.GetTodo(todoID, userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
@@ -147,6 +163,14 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	// get userid from request context
+	userId, ok := req.Context().Value("userId").(string)
+	if !ok {
+		// Handle error if user ID is not found or has unexpected type
+		http.Error(w, "User ID not found", http.StatusUnauthorized)
+		return
+	}
+
 	// get todo id from req param
 	paramTodoID := req.PathValue("id")
 	log.Print("paramTodoID ", paramTodoID)
@@ -166,8 +190,15 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	userID, err := utils.StringToInt(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
 	// delete  todo from db
-	err = services.DeleteTodo(todoID)
+	err = services.DeleteTodo(todoID, userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
@@ -185,6 +216,14 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 
 func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	// get userid from request context
+	userId, ok := req.Context().Value("userId").(string)
+	if !ok {
+		// Handle error if user ID is not found or has unexpected type
+		http.Error(w, "User ID not found", http.StatusUnauthorized)
+		return
+	}
 
 	// get todo from request
 	var newTodo models.UserTodo
@@ -213,8 +252,15 @@ func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	userID, err := utils.StringToInt(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
 	// update the todo
-	err = services.UpdateTodo(newTodo, todoID)
+	err = services.UpdateTodo(newTodo, todoID, userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())

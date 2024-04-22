@@ -26,7 +26,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	stmtGetTodo, err = mysqlDB.Prepare("SELECT id, title, completed FROM Todo WHERE id = ?")
+	stmtGetTodo, err = mysqlDB.Prepare("SELECT id, title, completed FROM Todo WHERE id = ? AND user_id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,12 +36,12 @@ func init() {
 		log.Fatal(err)
 	}
 
-	stmtDeleteTodo, err = mysqlDB.Prepare("DELETE FROM Todo WHERE id=?")
+	stmtDeleteTodo, err = mysqlDB.Prepare("DELETE FROM Todo WHERE id=? AND user_id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	stmtUpdateTodo, err = mysqlDB.Prepare("UPDATE Todo SET title = ?, completed = ?  WHERE id = ?")
+	stmtUpdateTodo, err = mysqlDB.Prepare("UPDATE Todo SET title = ?, completed = ?  WHERE id = ? AND user_id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,9 +64,9 @@ func PostTodo(todo models.UserTodo, userId int) error {
 
 // GetTodo return Todo & error
 // Expect userId and id(todo) as arg
-func GetTodo(id int) (models.Todo, error) {
+func GetTodo(id int, userId int) (models.Todo, error) {
 	var todo models.Todo
-	err := stmtGetTodo.QueryRow(id).Scan(&todo.ID, &todo.Title, &todo.Completed)
+	err := stmtGetTodo.QueryRow(id, userId).Scan(&todo.ID, &todo.Title, &todo.Completed)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// No todo found with the provided user ID and ID
@@ -101,8 +101,8 @@ func GetAllTodos(userId int) ([]models.Todo, error) {
 	return todos, nil
 }
 
-func DeleteTodo(id int) error {
-	result, err := stmtDeleteTodo.Exec(id)
+func DeleteTodo(id int, userId int) error {
+	result, err := stmtDeleteTodo.Exec(id, userId)
 	if err != nil {
 		return errors.New("failed to delete todo")
 	}
@@ -116,8 +116,8 @@ func DeleteTodo(id int) error {
 	return nil
 }
 
-func UpdateTodo(todo models.UserTodo, todoId int) error {
-	result, err := stmtUpdateTodo.Exec(todo.Title, todo.Completed, todoId)
+func UpdateTodo(todo models.UserTodo, todoId int, userID int) error {
+	result, err := stmtUpdateTodo.Exec(todo.Title, todo.Completed, todoId, userID)
 	if err != nil {
 		return errors.New("failed to update todo")
 	}
