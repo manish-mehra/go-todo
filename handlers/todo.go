@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,42 +11,10 @@ import (
 	"github.com/manish-mehra/go-todo/utils"
 )
 
-func isAuthenticated(req *http.Request) (string, error) {
-	// get the token from request cookie
-	cookies := req.Cookies()
-	var token string
-	for _, cookie := range cookies {
-		if cookie.Name == "token" {
-			token = cookie.Value
-		}
-	}
-
-	if token == "" {
-		return "", errors.New("No jwt found")
-	}
-
-	// verify token
-	userId, err := utils.VerifyToken(token)
-	if err != nil {
-		return "", err
-	}
-
-	return userId, nil
-}
-
 func GetTodo(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	// check if authenticated
-	_, err := isAuthenticated(req)
-	if err != nil {
-		log.Print(err)
-		message := err.Error()
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(w, message)
-		return
-	}
 	// get todo id from req param
 	paramTodoID := req.PathValue("id")
 	log.Print("paramTodoID ", paramTodoID)
@@ -93,13 +60,11 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 func GetAllTodo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// check if authenticated
-	userId, err := isAuthenticated(req)
-	if err != nil {
-		log.Print(err)
-		message := err.Error()
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(w, message)
+	// get userid from request context
+	userId, ok := req.Context().Value("userId").(string)
+	if !ok {
+		// Handle error if user ID is not found or has unexpected type
+		http.Error(w, "User ID not found", http.StatusUnauthorized)
 		return
 	}
 
@@ -141,13 +106,11 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	// check if authenticated
-	userId, err := isAuthenticated(req)
-	if err != nil {
-		log.Print(err)
-		message := err.Error()
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(w, message)
+	// get user id from request context
+	userId, ok := req.Context().Value("userId").(string)
+	if !ok {
+		// Handle error if user ID is not found or has unexpected type
+		http.Error(w, "User ID not found", http.StatusUnauthorized)
 		return
 	}
 	// get todo from request
@@ -183,16 +146,6 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-
-	// check if authenticated
-	_, err := isAuthenticated(req)
-	if err != nil {
-		log.Print(err)
-		message := err.Error()
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(w, message)
-		return
-	}
 
 	// get todo id from req param
 	paramTodoID := req.PathValue("id")
@@ -233,15 +186,6 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// check if authenticated
-	_, err := isAuthenticated(req)
-	if err != nil {
-		log.Print(err)
-		message := err.Error()
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprintf(w, message)
-		return
-	}
 	// get todo from request
 	var newTodo models.UserTodo
 	decoder := json.NewDecoder(req.Body)

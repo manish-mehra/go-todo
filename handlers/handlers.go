@@ -1,34 +1,37 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
-
-	"github.com/manish-mehra/go-todo/utils"
 )
 
+// ApplyMiddleware applies a series of middleware functions to the given handler,
+// chaining them in sequence to create a new composed handler with all middleware applied.
+type MiddlewareFunc func(http.Handler) http.Handler
+
+func ApplyMiddleware(handler http.Handler, middlewares ...MiddlewareFunc) http.Handler {
+	for _, middleware := range middlewares {
+		handler = middleware(handler)
+	}
+	return handler
+}
+
+// Serve is the HTTP handler initialized in the init function,
+// containing all configured routes and middleware for the application.
 var Serve http.Handler
 
 func init() {
 
-	log.Print("server init")
 	r := http.NewServeMux()
 
-	r.HandleFunc("GET /api/health", health)
 	r.HandleFunc("POST /api/register", RegisterUser)
 	r.HandleFunc("POST /api/login", LoginUser)
-	r.HandleFunc("POST /api/todo", PostTodo)
-	r.HandleFunc("GET /api/todo/{id}", GetTodo)
-	r.HandleFunc("GET /api/todos", GetAllTodo)
-	r.HandleFunc("DELETE /api/todo/{id}", DeleteTodo)
-	r.HandleFunc("PUT /api/todo/{id}", UpdateTodo)
+
+	// // add auth middleware
+	r.Handle("POST /api/todo", ApplyMiddleware(http.HandlerFunc(PostTodo), AuthMiddleware))
+	r.Handle("GET /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(GetTodo), AuthMiddleware))
+	r.Handle("GET /api/todos", ApplyMiddleware(http.HandlerFunc(GetAllTodo), AuthMiddleware))
+	r.Handle("DELETE /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(DeleteTodo), AuthMiddleware))
+	r.Handle("PUT /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(UpdateTodo), AuthMiddleware))
 
 	Serve = r
-}
-
-func health(w http.ResponseWriter, req *http.Request) {
-	response, _ := utils.ParseResponse("ok 🟢")
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
 }

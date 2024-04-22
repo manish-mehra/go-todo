@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -107,4 +108,37 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "internal error")
 		return
 	}
+}
+
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		w.Header().Set("Content-Type", "application/json")
+
+		// get the token from request cookie
+		cookies := req.Cookies()
+		var token string
+		for _, cookie := range cookies {
+			if cookie.Name == "token" {
+				token = cookie.Value
+			}
+		}
+		if token == "" {
+			fmt.Fprintf(w, "Not JWT Token Found!")
+			return
+		}
+		// verify token
+		userId, err := utils.VerifyToken(token)
+		if err != nil {
+			fmt.Fprintf(w, "Unauthorized")
+			return
+		}
+		log.Print("authorized: " + userId)
+
+		// Store the user ID in the request context
+		ctx := context.WithValue(req.Context(), "userId", userId)
+		req = req.WithContext(ctx)
+
+		next.ServeHTTP(w, req)
+	})
 }
