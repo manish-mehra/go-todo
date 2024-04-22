@@ -96,7 +96,7 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 	// Set the cookie in the response
 	http.SetCookie(w, &cookie)
 	resUser := struct {
-		Id    int64  `json:"id"`
+		Id    int    `json:"id"`
 		Name  string `json:"name"`
 		Email string `json:"email"`
 		Role  string `json:"role"`

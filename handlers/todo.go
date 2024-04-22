@@ -27,7 +27,7 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// convert todo id to int
-	todoID, err := utils.StringToInt64(paramTodoID)
+	todoID, err := utils.StringToInt(paramTodoID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
@@ -44,7 +44,7 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 
 	// convert res to json
 	resTodo := struct {
-		Id        int64  `json:"id"`
+		Id        int    `json:"id"`
 		Title     string `json:"title"`
 		Completed bool   `json:"completed"`
 	}{Id: todo.ID, Title: todo.Title, Completed: todo.Completed}
@@ -68,7 +68,7 @@ func GetAllTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	userID, err := utils.StringToInt64(userId)
+	userID, err := utils.StringToInt(userId)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
@@ -122,7 +122,7 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// convert user id to int
-	uId, err := utils.StringToInt64(userId)
+	uId, err := utils.StringToInt(userId)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
@@ -159,7 +159,7 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// convert todo  id to int
-	todoID, err := utils.StringToInt64(paramTodoID)
+	todoID, err := utils.StringToInt(paramTodoID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())
@@ -206,7 +206,7 @@ func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// convert todo  id to int
-	todoID, err := utils.StringToInt64(paramTodoID)
+	todoID, err := utils.StringToInt(paramTodoID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, err.Error())

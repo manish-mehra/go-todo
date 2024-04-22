@@ -80,11 +80,11 @@ func VerifyToken(tokenString string) (string, error) {
 	return userId, nil
 }
 
-// convert strint to int64
-func StringToInt64(str string) (int64, error) {
+// convert strint to int
+func StringToInt(str string) (int, error) {
 	i, err := strconv.Atoi(str)
 	if err != nil {
 		return 0, err // Handle error (e.g., return 0 and an error)
 	}
-	return int64(i), nil
+	return int(i), nil
 }

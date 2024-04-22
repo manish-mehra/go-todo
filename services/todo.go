@@ -47,7 +47,7 @@ func init() {
 	}
 }
 
-func PostTodo(todo models.UserTodo, userId int64) error {
+func PostTodo(todo models.UserTodo, userId int) error {
 	result, err := stmtPostTodo.Exec(todo.Title, todo.Completed, userId)
 	if err != nil {
 		return errors.New("failed to post todo")
@@ -64,7 +64,7 @@ func PostTodo(todo models.UserTodo, userId int64) error {
 
 // GetTodo return Todo & error
 // Expect userId and id(todo) as arg
-func GetTodo(id int64) (models.Todo, error) {
+func GetTodo(id int) (models.Todo, error) {
 	var todo models.Todo
 	err := stmtGetTodo.QueryRow(id).Scan(&todo.ID, &todo.Title, &todo.Completed)
 	if err != nil {
@@ -77,7 +77,7 @@ func GetTodo(id int64) (models.Todo, error) {
 	return todo, nil
 }
 
-func GetAllTodos(userId int64) ([]models.Todo, error) {
+func GetAllTodos(userId int) ([]models.Todo, error) {
 	var todos []models.Todo
 	rows, err := stmtGetTodos.Query(userId)
 	if err != nil {
@@ -101,7 +101,7 @@ func GetAllTodos(userId int64) ([]models.Todo, error) {
 	return todos, nil
 }
 
-func DeleteTodo(id int64) error {
+func DeleteTodo(id int) error {
 	result, err := stmtDeleteTodo.Exec(id)
 	if err != nil {
 		return errors.New("failed to delete todo")
@@ -116,7 +116,7 @@ func DeleteTodo(id int64) error {
 	return nil
 }
 
-func UpdateTodo(todo models.UserTodo, todoId int64) error {
+func UpdateTodo(todo models.UserTodo, todoId int) error {
 	result, err := stmtUpdateTodo.Exec(todo.Title, todo.Completed, todoId)
 	if err != nil {
 		return errors.New("failed to update todo")

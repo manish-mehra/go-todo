@@ -3,11 +3,11 @@ package models
 import "time"
 
 type Todo struct {
-	ID        int64     `json:"id"`
+	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Completed bool      `json:"completed"`
 	CreatedAt time.Time `json:"created_at"`
-	UserID    int64     `json:"user_id"`
+	UserID    int       `json:"user_id"`
 }
 
 type UserTodo struct {
@@ -16,7 +16,7 @@ type UserTodo struct {
 }
 
 type ResTodo struct {
-	Id        int64  `json:"id"`
+	Id        int    `json:"id"`
 	Title     string `json:"title"`
 	Completed bool   `json:"completed"`
 }
