@@ -11,6 +11,7 @@ import (
 
 	// my imports
 	"github.com/manish-mehra/go-todo/models"
+	"github.com/manish-mehra/go-todo/utils"
 )
 
 // Package-level variables to hold prepared SQL statements for
@@ -55,7 +56,7 @@ func GetUserByEmail(userMail string) (models.User, error) {
 	err := stmtGetUserByEmail.QueryRow(userMail).Scan(&user.Id, &user.Name, &user.Email, &user.Role, &user.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, errors.New("user not found")
+			return user, utils.ErrNotFound
 		}
 		return user, errors.New("failed to get user: " + err.Error())
 	}

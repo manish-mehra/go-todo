@@ -88,3 +88,8 @@ func StringToInt(str string) (int, error) {
 	}
 	return int(i), nil
 }
+
+// Not Found
+var (
+	ErrNotFound = errors.New("not found")
+)

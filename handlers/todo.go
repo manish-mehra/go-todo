@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"log"
 	"net/http"
 
@@ -18,43 +18,41 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 	// get userid from request context
 	userId, ok := req.Context().Value("userId").(string)
 	if !ok {
-		// Handle error if user ID is not found or has unexpected type
 		http.Error(w, "User ID not found", http.StatusUnauthorized)
 		return
 	}
 
 	// get todo id from req param
 	paramTodoID := req.PathValue("id")
-	log.Print("paramTodoID ", paramTodoID)
 	if paramTodoID == "" {
-		log.Print("no todo id was found")
-		message := "no todo id was found!"
-		w.WriteHeader(http.StatusNotExtended)
-		fmt.Fprintf(w, message)
+		http.Error(w, "Todo ID not found", http.StatusBadRequest)
 		return
 	}
 
 	// convert todo id to int
 	todoID, err := utils.StringToInt(paramTodoID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error converting todo id %d to string", todoID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	// convert user id to int
 	userID, err := utils.StringToInt(userId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error converting user ID to %d string", userID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-
 	// get todo from db
 	todo, err := services.GetTodo(todoID, userID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		if errors.Is(err, utils.ErrNotFound) {
+			http.Error(w, "Todo not found", http.StatusNotFound)
+			return
+		}
+		log.Printf("Error fetching todo for  user ID %d and ID %d error %d", userID, todoID, errors.New(err.Error()))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -64,11 +62,13 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 		Title     string `json:"title"`
 		Completed bool   `json:"completed"`
 	}{Id: todo.ID, Title: todo.Title, Completed: todo.Completed}
+
 	response := models.Response{Message: "successful", Data: resTodo}
 	err = json.NewEncoder(w).Encode(response)
+
 	if err != nil {
-		log.Print(err)
-		fmt.Fprintf(w, "internal error while parsing todo")
+		log.Printf("Error necoding response %d", errors.New(err.Error()))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -79,22 +79,25 @@ func GetAllTodo(w http.ResponseWriter, req *http.Request) {
 	// get userid from request context
 	userId, ok := req.Context().Value("userId").(string)
 	if !ok {
-		// Handle error if user ID is not found or has unexpected type
 		http.Error(w, "User ID not found", http.StatusUnauthorized)
 		return
 	}
 
 	userID, err := utils.StringToInt(userId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error converting user ID to %d string", userID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	todos, err := services.GetAllTodos(userID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		if errors.Is(err, utils.ErrNotFound) {
+			http.Error(w, "Todos not found", http.StatusNotFound)
+			return
+		}
+		log.Printf("Error fetching todos for  user ID %d  error %d", userID, errors.New(err.Error()))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	var resTodo []models.ResTodo
@@ -112,8 +115,8 @@ func GetAllTodo(w http.ResponseWriter, req *http.Request) {
 	response := models.Response{Message: "successful", Data: resTodo}
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
-		log.Print(err)
-		fmt.Fprintf(w, "internal error while parsing todos")
+		log.Printf("Error necoding response %d", errors.New(err.Error()))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -125,7 +128,6 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 	// get user id from request context
 	userId, ok := req.Context().Value("userId").(string)
 	if !ok {
-		// Handle error if user ID is not found or has unexpected type
 		http.Error(w, "User ID not found", http.StatusUnauthorized)
 		return
 	}
@@ -133,30 +135,33 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 	var newTodo models.UserTodo
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(&newTodo); err != nil {
-		fmt.Fprintf(w, "error decoding json data")
+		log.Printf("Error converting todo to json for user ID %s", userId)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	// convert user id to int
-	uId, err := utils.StringToInt(userId)
+	userID, err := utils.StringToInt(userId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error converting user ID %d to int", userID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	err = services.PostTodo(newTodo, uId)
+	err = services.PostTodo(newTodo, userID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error posting  todo with user ID %d", userID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	message := "todo created"
-	response, _ := utils.ParseResponse(message)
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
-	return
+	response := models.Response{Message: "successful", Data: nil}
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Printf("Error necoding response %d", errors.New(err.Error()))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func DeleteTodo(w http.ResponseWriter, req *http.Request) {
@@ -166,7 +171,6 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 	// get userid from request context
 	userId, ok := req.Context().Value("userId").(string)
 	if !ok {
-		// Handle error if user ID is not found or has unexpected type
 		http.Error(w, "User ID not found", http.StatusUnauthorized)
 		return
 	}
@@ -175,41 +179,42 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 	paramTodoID := req.PathValue("id")
 	log.Print("paramTodoID ", paramTodoID)
 	if paramTodoID == "" {
-		log.Print("no todo id was found")
-		message := "no todo id was found!"
-		w.WriteHeader(http.StatusNotExtended)
-		fmt.Fprintf(w, message)
+		http.Error(w, "Missing Todo ID", http.StatusBadRequest)
 		return
 	}
 
 	// convert todo  id to int
 	todoID, err := utils.StringToInt(paramTodoID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error converting todo id %d to string", todoID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	userID, err := utils.StringToInt(userId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error converting user ID to %d string", userID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	// delete  todo from db
 	err = services.DeleteTodo(todoID, userID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		if errors.Is(err, utils.ErrNotFound) {
+			http.Error(w, "Todo not found", http.StatusNotFound)
+			return
+		}
+		log.Printf("Error deleting  todo with user ID %d", userID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	response := models.Response{Message: "successful", Data: nil}
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
-		log.Print(err)
-		fmt.Fprintf(w, "internal error while parsing todo")
+		log.Printf("Error necoding response %d", errors.New(err.Error()))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -220,7 +225,6 @@ func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	// get userid from request context
 	userId, ok := req.Context().Value("userId").(string)
 	if !ok {
-		// Handle error if user ID is not found or has unexpected type
 		http.Error(w, "User ID not found", http.StatusUnauthorized)
 		return
 	}
@@ -229,7 +233,8 @@ func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	var newTodo models.UserTodo
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(&newTodo); err != nil {
-		fmt.Fprintf(w, "error decoding json data")
+		log.Printf("Error converting todo to json for user ID %s", userId)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -237,39 +242,42 @@ func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	paramTodoID := req.PathValue("id")
 	log.Print("paramTodoID ", paramTodoID)
 	if paramTodoID == "" {
-		log.Print("no todo id was found")
-		message := "no todo id was found!"
-		w.WriteHeader(http.StatusNotExtended)
-		fmt.Fprintf(w, message)
+		http.Error(w, "Missing Todo ID", http.StatusBadRequest)
 		return
 	}
 
 	// convert todo  id to int
 	todoID, err := utils.StringToInt(paramTodoID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error converting todo id %d to string", todoID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	userID, err := utils.StringToInt(userId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		log.Printf("Error converting user ID to %d string", userID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	// update the todo
 	err = services.UpdateTodo(newTodo, todoID, userID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, err.Error())
+		if errors.Is(err, utils.ErrNotFound) {
+			http.Error(w, "Todo not found", http.StatusNotFound)
+			return
+		}
+		log.Printf("Error updating  todo with user ID %d", userID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	message := "todo updated"
-	response, _ := utils.ParseResponse(message)
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
-	return
+	response := models.Response{Message: "successful", Data: nil}
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Printf("Error necoding response %d", errors.New(err.Error()))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }

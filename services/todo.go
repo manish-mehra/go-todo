@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/manish-mehra/go-todo/models"
+	"github.com/manish-mehra/go-todo/utils"
 )
 
 var (
@@ -57,7 +58,7 @@ func PostTodo(todo models.UserTodo, userId int) error {
 		return err // handle error getting rows affected
 	}
 	if rowsAffected == 0 {
-		return errors.New("todo with ID not found") // handle missing ID
+		return utils.ErrNotFound // handle missing ID
 	}
 	return nil
 }
@@ -69,8 +70,7 @@ func GetTodo(id int, userId int) (models.Todo, error) {
 	err := stmtGetTodo.QueryRow(id, userId).Scan(&todo.ID, &todo.Title, &todo.Completed)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// No todo found with the provided user ID and ID
-			return models.Todo{}, errors.New("todo not found")
+			return models.Todo{}, utils.ErrNotFound
 		}
 		return models.Todo{}, errors.New("failed to get todo: " + err.Error())
 	}
@@ -81,6 +81,9 @@ func GetAllTodos(userId int) ([]models.Todo, error) {
 	var todos []models.Todo
 	rows, err := stmtGetTodos.Query(userId)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, utils.ErrNotFound
+		}
 		return nil, errors.New("failed to get all todos: " + err.Error())
 	}
 	defer rows.Close()
@@ -111,7 +114,7 @@ func DeleteTodo(id int, userId int) error {
 		return err // handle error getting rows affected
 	}
 	if rowsAffected == 0 {
-		return errors.New("todo with ID not found") // handle missing ID
+		return utils.ErrNotFound // handle missing ID
 	}
 	return nil
 }
@@ -126,7 +129,7 @@ func UpdateTodo(todo models.UserTodo, todoId int, userID int) error {
 		return err // handle error getting rows affected
 	}
 	if rowsAffected == 0 {
-		return errors.New("todo with ID not found") // handle missing ID
+		return utils.ErrNotFound // handle missing ID
 	}
 	return nil
 }
