@@ -16,6 +16,7 @@ This is a simple REST API built using Go and Mysql. The API provides endpoints f
 - [joho/godotenv](github.com/joho/godotenv) (for loading environment variables from `.env` file)
 
 ### Folder Structure
+```go
 go-todo/
 ├── handlers/
 │   ├── auth.go
@@ -36,7 +37,7 @@ go-todo/
 ├── go.mod
 ├── go.sum
 └── main.go
-
+```
 - `handlers/`: Contains handler functions for different routes.
   - `auth.go`: Handlers for user authentication (login, register) and authentication middleware.
   - `handlers.go`: Serves the handlers and applies middleware.
