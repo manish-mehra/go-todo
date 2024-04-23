@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"os"
 	"strconv"
 	"time"
 
@@ -31,7 +32,7 @@ func ParseResponse(message string) ([]byte, error) {
 }
 
 // JWT TOKEK
-var secretKey = []byte("secret-key")
+var secretKey = []byte(os.Getenv("JWT_SECRET"))
 
 func CreateToken(userId string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
