@@ -17,8 +17,8 @@ type TodoService struct {
 	updateTodoStmt *sql.Stmt
 }
 
-// function to prepare and set TodoService statements
-func prepareStmts(svc *TodoService) error {
+// method to prepare all CRUD statements
+func (svc *TodoService) prepareStatements() error {
 
 	err := svc.prepareGetTodoStmt()
 	if err != nil {
@@ -53,7 +53,7 @@ func NewTodoService(db *sql.DB) (*TodoService, error) {
 		db: db,
 	}
 	// prepare statements
-	err := prepareStmts(svc)
+	err := svc.prepareStatements()
 	if err != nil {
 		return nil, err
 	}
