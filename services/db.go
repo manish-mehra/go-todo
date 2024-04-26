@@ -14,6 +14,7 @@ import (
 var (
 	mysqlDB *sql.DB
 	TodoSvc *TodoService
+	UserSvc *UserService
 )
 
 func init() {
@@ -22,6 +23,11 @@ func init() {
 
 	var err error
 	TodoSvc, err = NewTodoService(mysqlDB)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	UserSvc, err = NewUserService(mysqlDB)
 	if err != nil {
 		log.Fatal(err)
 	}

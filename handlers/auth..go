@@ -26,7 +26,7 @@ func RegisterUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// check if user with same email already exist
-	user, _ := services.GetUserByEmail(newUser.Email)
+	user, _ := services.UserSvc.GetUserByEmail(newUser.Email)
 	// if email is there, user don't exist
 	if user.Email != "" {
 		http.Error(w, "User already exist", http.StatusBadRequest)
@@ -34,7 +34,7 @@ func RegisterUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// add user
-	err = services.CreateUser(newUser)
+	err = services.UserSvc.CreateUser(newUser)
 	if err != nil {
 		log.Printf("Error creating user")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -69,7 +69,7 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// get the user from database
-	dbUser, err := services.GetUserByEmail(loggedUser.Email)
+	dbUser, err := services.UserSvc.GetUserByEmail(loggedUser.Email)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "User not found", http.StatusBadRequest)
