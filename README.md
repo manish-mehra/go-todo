@@ -2,7 +2,7 @@
 
 This is a simple REST API built using Go and Mysql. The API provides endpoints for user authentication (registration and login) and CRUD operations for managing todo items. The goal of this project was to stick to the Go standard library as much as possible, avoiding the use of external libraries or frameworks where possible.
 
-**V1 of this api can be found [https://github.com/manish-mehra/go-todo/tree/todo-api-v1](here)**
+**V1 of this api can be found [here](https://github.com/manish-mehra/go-todo/tree/todo-api-v1)**
 
 ## Technologies Used
 
