@@ -45,7 +45,7 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// get todo from db
-	todo, err := services.GetTodo(todoID, userID)
+	todo, err := services.TodoSvc.GetTodo(todoID, userID)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "Todo not found", http.StatusNotFound)
@@ -90,7 +90,7 @@ func GetAllTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	todos, err := services.GetAllTodos(userID)
+	todos, err := services.TodoSvc.GetAllTodos(userID)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "Todos not found", http.StatusNotFound)
@@ -148,7 +148,7 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = services.PostTodo(newTodo, userID)
+	err = services.TodoSvc.PostTodo(newTodo, userID)
 	if err != nil {
 		log.Printf("Error posting  todo with user ID %d", userID)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -199,7 +199,7 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// delete  todo from db
-	err = services.DeleteTodo(todoID, userID)
+	err = services.TodoSvc.DeleteTodo(todoID, userID)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "Todo not found", http.StatusNotFound)
@@ -262,7 +262,7 @@ func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// update the todo
-	err = services.UpdateTodo(newTodo, todoID, userID)
+	err = services.TodoSvc.UpdateTodo(newTodo, todoID, userID)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "Todo not found", http.StatusNotFound)

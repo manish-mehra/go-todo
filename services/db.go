@@ -11,10 +11,20 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var mysqlDB *sql.DB
+var (
+	mysqlDB *sql.DB
+	TodoSvc *TodoService
+)
 
 func init() {
+
 	ConnectToDB()
+
+	var err error
+	TodoSvc, err = NewTodoService(mysqlDB)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func ConnectToDB() error {
