@@ -17,37 +17,6 @@ type TodoService struct {
 	updateTodoStmt *sql.Stmt
 }
 
-// method to prepare all CRUD statements
-func (svc *TodoService) prepareStatements() error {
-
-	err := svc.prepareGetTodoStmt()
-	if err != nil {
-		return err
-	}
-
-	err = svc.preparePostTodoStmt()
-	if err != nil {
-		return err
-	}
-
-	err = svc.prepareGetAllTodoStmt()
-	if err != nil {
-		return err
-	}
-
-	err = svc.prepareDeleteTodoStmt()
-	if err != nil {
-		return err
-	}
-
-	err = svc.prepareUpdateTodoStmt()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func NewTodoService(db *sql.DB) (*TodoService, error) {
 	svc := &TodoService{
 		db: db,
@@ -59,6 +28,37 @@ func NewTodoService(db *sql.DB) (*TodoService, error) {
 	}
 
 	return svc, nil
+}
+
+// method to prepare all CRUD statements
+func (t *TodoService) prepareStatements() error {
+
+	err := t.prepareGetTodoStmt()
+	if err != nil {
+		return err
+	}
+
+	err = t.preparePostTodoStmt()
+	if err != nil {
+		return err
+	}
+
+	err = t.prepareGetAllTodoStmt()
+	if err != nil {
+		return err
+	}
+
+	err = t.prepareDeleteTodoStmt()
+	if err != nil {
+		return err
+	}
+
+	err = t.prepareUpdateTodoStmt()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (t *TodoService) prepareGetTodoStmt() error {
