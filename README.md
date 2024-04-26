@@ -1,4 +1,4 @@
-# Todo REST API(V2)
+# Todo REST API(V2)(WIP)
 
 This is a simple REST API built using Go and Mysql. The API provides endpoints for user authentication (registration and login) and CRUD operations for managing todo items. The goal of this project was to stick to the Go standard library as much as possible, avoiding the use of external libraries or frameworks where possible.
 
