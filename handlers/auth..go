@@ -13,7 +13,17 @@ import (
 	"github.com/manish-mehra/go-todo/utils"
 )
 
-func RegisterUser(w http.ResponseWriter, req *http.Request) {
+type UserHandler struct {
+	userService *services.UserService
+}
+
+func NewUserHandler(userService *services.UserService) *UserHandler {
+	return &UserHandler{
+		userService: userService,
+	}
+}
+
+func (h *UserHandler) RegisterUser(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -26,7 +36,7 @@ func RegisterUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// check if user with same email already exist
-	user, _ := services.UserSvc.GetUserByEmail(newUser.Email)
+	user, _ := h.userService.GetUserByEmail(newUser.Email)
 	// if email is there, user don't exist
 	if user.Email != "" {
 		http.Error(w, "User already exist", http.StatusBadRequest)
@@ -34,7 +44,7 @@ func RegisterUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// add user
-	err = services.UserSvc.CreateUser(newUser)
+	err = h.userService.CreateUser(newUser)
 	if err != nil {
 		log.Printf("Error creating user")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -52,8 +62,7 @@ func RegisterUser(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func LoginUser(w http.ResponseWriter, req *http.Request) {
-
+func (h *UserHandler) LoginUser(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var loggedUser struct {
@@ -69,7 +78,7 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// get the user from database
-	dbUser, err := services.UserSvc.GetUserByEmail(loggedUser.Email)
+	dbUser, err := h.userService.GetUserByEmail(loggedUser.Email)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "User not found", http.StatusBadRequest)
@@ -122,7 +131,7 @@ func LoginUser(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func AuthMiddleware(next http.Handler) http.Handler {
+func (h *UserHandler) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
