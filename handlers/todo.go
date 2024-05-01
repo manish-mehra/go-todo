@@ -11,7 +11,11 @@ import (
 	"github.com/manish-mehra/go-todo/utils"
 )
 
-func GetTodo(w http.ResponseWriter, req *http.Request) {
+type TodoHandler struct {
+	todoService *services.TodoService
+}
+
+func (h *TodoHandler) GetTodo(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -45,7 +49,7 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// get todo from db
-	todo, err := services.TodoSvc.GetTodo(todoID, userID)
+	todo, err := h.todoService.GetTodo(todoID, userID)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "Todo not found", http.StatusNotFound)
@@ -72,8 +76,7 @@ func GetTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
-
-func GetAllTodo(w http.ResponseWriter, req *http.Request) {
+func (h *TodoHandler) GetAllTodo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// get userid from request context
@@ -90,7 +93,7 @@ func GetAllTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	todos, err := services.TodoSvc.GetAllTodos(userID)
+	todos, err := h.todoService.GetAllTodos(userID)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "Todos not found", http.StatusNotFound)
@@ -120,9 +123,7 @@ func GetAllTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
-
-func PostTodo(w http.ResponseWriter, req *http.Request) {
-
+func (h *TodoHandler) PostTodo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// get user id from request context
@@ -148,7 +149,7 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = services.TodoSvc.PostTodo(newTodo, userID)
+	err = h.todoService.PostTodo(newTodo, userID)
 	if err != nil {
 		log.Printf("Error posting  todo with user ID %d", userID)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -163,9 +164,7 @@ func PostTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
-
-func DeleteTodo(w http.ResponseWriter, req *http.Request) {
-
+func (h *TodoHandler) DeleteTodo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// get userid from request context
@@ -199,7 +198,7 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// delete  todo from db
-	err = services.TodoSvc.DeleteTodo(todoID, userID)
+	err = h.todoService.DeleteTodo(todoID, userID)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "Todo not found", http.StatusNotFound)
@@ -218,8 +217,7 @@ func DeleteTodo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
-
-func UpdateTodo(w http.ResponseWriter, req *http.Request) {
+func (h *TodoHandler) UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// get userid from request context
@@ -262,7 +260,7 @@ func UpdateTodo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// update the todo
-	err = services.TodoSvc.UpdateTodo(newTodo, todoID, userID)
+	err = h.todoService.UpdateTodo(newTodo, todoID, userID)
 	if err != nil {
 		if errors.Is(err, utils.ErrNotFound) {
 			http.Error(w, "Todo not found", http.StatusNotFound)
