@@ -21,9 +21,7 @@ var Serve http.Handler
 
 func init() {
 
-	userHandlers := &UserHandler{
-		userService: services.UserSvc,
-	}
+	middleware := Middleware{}
 
 	todoHandler := &TodoHandler{
 		todoService: services.TodoSvc,
@@ -31,15 +29,17 @@ func init() {
 
 	r := http.NewServeMux()
 
-	r.HandleFunc("POST /api/register", userHandlers.RegisterUser)
-	r.HandleFunc("POST /api/login", userHandlers.LoginUser)
+	userSrvc := services.UserSvc
+
+	r.Handle("POST /api/register", RegisterUserHandler(userSrvc))
+	r.Handle("POST /api/login", LoginUserHandler(userSrvc))
 
 	// // add auth middleware
-	r.Handle("POST /api/todo", ApplyMiddleware(http.HandlerFunc(todoHandler.PostTodo), userHandlers.AuthMiddleware))
-	r.Handle("GET /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(todoHandler.GetTodo), userHandlers.AuthMiddleware))
-	r.Handle("GET /api/todos", ApplyMiddleware(http.HandlerFunc(todoHandler.GetAllTodo), userHandlers.AuthMiddleware))
-	r.Handle("DELETE /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(todoHandler.DeleteTodo), userHandlers.AuthMiddleware))
-	r.Handle("PUT /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(todoHandler.UpdateTodo), userHandlers.AuthMiddleware))
+	r.Handle("POST /api/todo", ApplyMiddleware(http.HandlerFunc(todoHandler.PostTodo), middleware.AuthMiddleware))
+	r.Handle("GET /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(todoHandler.GetTodo), middleware.AuthMiddleware))
+	r.Handle("GET /api/todos", ApplyMiddleware(http.HandlerFunc(todoHandler.GetAllTodo), middleware.AuthMiddleware))
+	r.Handle("DELETE /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(todoHandler.DeleteTodo), middleware.AuthMiddleware))
+	r.Handle("PUT /api/todo/{id}", ApplyMiddleware(http.HandlerFunc(todoHandler.UpdateTodo), middleware.AuthMiddleware))
 
 	Serve = r
 }

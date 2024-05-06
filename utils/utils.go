@@ -12,6 +12,12 @@ import (
 	"github.com/manish-mehra/go-todo/models"
 )
 
+type ErrMessages struct{}
+
+func (e ErrMessages) NotFound() error {
+	return errors.New("not found")
+}
+
 // DecodeUserJSON decodes JSON data into a USER struct
 func DecodeUserJSON(data io.Reader) (models.User, error) {
 	decoder := json.NewDecoder(data)
